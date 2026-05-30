@@ -21,7 +21,7 @@ export default function App() {
   });
 
   const [counts, setCounts] = useState(initialCounts);
-  const [search, setSearch] = useState("");
+
   const [refreshToken, setRefreshToken] = useState(0);
   const [uploadedCategory, setUploadedCategory] = useState(null);
 
@@ -80,11 +80,11 @@ export default function App() {
           style={{ backgroundImage: `url(${backgroundImage})` }}
         />
         <div className="fixed inset-0 -z-10 bg-gradient-to-b from-slate-950/65 via-slate-950/85 to-slate-950" />
-        <Navbar search={search} onSearchChange={setSearch} />
+        <Navbar />
 
         <Routes>
           <Route path="/" element={HomePage} />
-          <Route path="/gallery/:categoryId" element={<CategoryGalleryPage search={search} />} />
+          <Route path="/gallery/:categoryId" element={<CategoryGalleryPage />} />
         </Routes>
 
         <Toaster

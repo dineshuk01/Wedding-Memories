@@ -45,7 +45,7 @@ function GalleryImage({ src, alt, fitMode }) {
   );
 }
 
-export default function CategoryGalleryPage({ search }) {
+export default function CategoryGalleryPage() {
   const { categoryId } = useParams();
   const category = categories.find((item) => item.id === categoryId);
   const activeCategory = category || categories[0];
@@ -104,11 +104,7 @@ export default function CategoryGalleryPage({ search }) {
     }
   }, [lightboxIndex]);
 
-  const filteredImages = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return images;
-    return images.filter((image) => image.key.toLowerCase().includes(query) || activeCategory.id.includes(query));
-  }, [images, search, activeCategory.id]);
+  const filteredImages = images;
 
   return (
     !category ? <Navigate to="/" replace /> :
@@ -207,7 +203,7 @@ export default function CategoryGalleryPage({ search }) {
             <div>
               <FaRegImage className="mx-auto mb-4 text-5xl text-slate-500" />
               <h3 className="text-xl font-semibold text-white">No images found</h3>
-              <p className="mt-2 max-w-sm text-sm text-slate-400">Upload an image to {activeCategory.label} or clear the search field.</p>
+              <p className="mt-2 max-w-sm text-sm text-slate-400">Upload an image to {activeCategory.label}.</p>
             </div>
           </div>
         )}
