@@ -1,0 +1,17 @@
+# Environment
+.env
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+npm-debug.log*
+
+# Local server logs
+server.log
+server.err.log
