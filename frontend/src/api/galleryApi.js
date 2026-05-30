@@ -46,10 +46,16 @@ export function downloadImageByKey(key) {
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = filename;
+  // Use target="_blank" to ensure the current page state isn't disrupted
+  anchor.target = "_blank";
   anchor.rel = "noopener noreferrer";
   document.body.appendChild(anchor);
   anchor.click();
-  document.body.removeChild(anchor);
+  
+  // Delay removal so the browser doesn't cancel the navigation
+  setTimeout(() => {
+    document.body.removeChild(anchor);
+  }, 500);
 }
 
 /**
