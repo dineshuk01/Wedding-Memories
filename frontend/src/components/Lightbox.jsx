@@ -149,7 +149,7 @@ export default function Lightbox({ images = [], index, onClose, onPrev, onNext }
                 src={image.url}
                 alt={image.key}
                 className={`max-h-[82vh] max-w-[84vw] rounded-3xl object-contain transition-all duration-500 ${
-                  highResLoaded ? "blur-none" : "blur-lg scale-105"
+                  highResLoaded ? "blur-none" : "blur-sm"
                 }`}
               />
 
@@ -159,6 +159,8 @@ export default function Lightbox({ images = [], index, onClose, onPrev, onNext }
                   src={image.original_url}
                   alt={image.key}
                   onLoad={() => setHighResLoaded(true)}
+                  decoding="async"
+                  fetchPriority="high"
                   className={`absolute inset-0 h-full w-full rounded-3xl object-contain transition-opacity duration-500 ${
                     highResLoaded ? "opacity-100" : "opacity-0"
                   }`}
