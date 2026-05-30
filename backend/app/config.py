@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     s3_bucket_name: str = ""
     frontend_origin: str = "http://localhost:5173"
     presigned_url_expires_seconds: int = 3600
+
+    # Gallery login credentials (kept server-side, never sent to the browser)
+    app_username: str = "admin"
+    app_password: str = "changeme"
     
     # Optional CloudFront CDN configurations for signed URL delivery
     cloudfront_domain: str = ""

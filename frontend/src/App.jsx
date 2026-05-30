@@ -10,20 +10,32 @@ import UploadSection from "./components/UploadSection";
 import { fetchCategoryCounts } from "./api/galleryApi";
 import { categories } from "./data/categories";
 import CategoryGalleryPage from "./pages/CategoryGalleryPage";
+import LoginPage from "./pages/LoginPage";
 
 const initialCounts = Object.fromEntries(categories.map((category) => [category.id, 0]));
+const SESSION_KEY = "wedding_gallery_auth_v1";
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return sessionStorage.getItem(SESSION_KEY) === "true";
+  });
+
   const [counts, setCounts] = useState(initialCounts);
   const [search, setSearch] = useState("");
   const [refreshToken, setRefreshToken] = useState(0);
   const [uploadedCategory, setUploadedCategory] = useState(null);
 
+  const handleLogin = () => {
+    sessionStorage.setItem(SESSION_KEY, "true");
+    setIsLoggedIn(true);
+  };
+
   useEffect(() => {
+    if (!isLoggedIn) return;
     fetchCategoryCounts()
       .then((nextCounts) => setCounts((current) => ({ ...current, ...nextCounts })))
       .catch(() => toast.error("Could not load category counts"));
-  }, []);
+  }, [isLoggedIn]);
 
   const handleUploaded = (categoryId) => {
     setCounts((current) => ({ ...current, [categoryId]: (current[categoryId] || 0) + 1 }));
@@ -35,6 +47,11 @@ export default function App() {
     setCounts((current) => ({ ...current, [categoryId]: count }));
   };
 
+  // Show login gate until authenticated
+  if (!isLoggedIn) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
   const HomePage = (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <motion.div
@@ -43,7 +60,7 @@ export default function App() {
         className="mb-12 flex flex-col items-center justify-center text-center"
       >
         <p className="font-serif text-3xl font-extralight italic tracking-wide text-slate-100 sm:text-4xl lg:text-5xl md:leading-relaxed">
-          “From this day forward, every picture tells our story.”
+          "From this day forward, every picture tells our story."
         </p>
         <div className="mt-6 h-1 w-24 rounded-full bg-gradient-to-r from-rose-400 via-pink-400 to-amber-300 opacity-80 shadow-glow" />
       </motion.div>
