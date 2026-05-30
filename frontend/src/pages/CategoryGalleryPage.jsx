@@ -53,7 +53,7 @@ export default function CategoryGalleryPage({ search }) {
   const [nextToken, setNextToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [lightboxImage, setLightboxImage] = useState(null);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
   const [fitMode, setFitMode] = useState(() => {
     return localStorage.getItem("wedding_gallery_fit_mode") || "cover";
   });
@@ -94,6 +94,15 @@ export default function CategoryGalleryPage({ search }) {
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
   }, [nextToken, loadingMore, activeCategory.id]);
+
+  // Auto-fetch next page when the user is 5 photos from the end while inside the lightbox
+  useEffect(() => {
+    if (lightboxIndex === null || !nextToken || loadingMore) return;
+    const threshold = filteredImages.length - 5;
+    if (lightboxIndex >= threshold) {
+      loadImages(nextToken, true);
+    }
+  }, [lightboxIndex]);
 
   const filteredImages = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -169,7 +178,14 @@ export default function CategoryGalleryPage({ search }) {
                   initial={{ opacity: 0, y: 18 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(index * 0.025, 0.25) }}
-                  onClick={() => setLightboxImage(image)}
+                  onClick={() => setLightboxIndex(index)}
+                  onMouseEnter={() => {
+                    // Preload the original high-resolution image when the user hovers over the thumbnail
+                    if (image.original_url && image.original_url !== image.url) {
+                      const img = new Image();
+                      img.src = image.original_url;
+                    }
+                  }}
                   className="w-full group relative aspect-square overflow-hidden rounded-2xl border border-white/10 bg-slate-950/40 shadow-2xl"
                 >
                   <GalleryImage
@@ -197,7 +213,13 @@ export default function CategoryGalleryPage({ search }) {
         )}
       </section>
 
-      <Lightbox image={lightboxImage} onClose={() => setLightboxImage(null)} />
+      <Lightbox
+        images={filteredImages}
+        index={lightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+        onPrev={() => setLightboxIndex((i) => Math.max(0, i - 1))}
+        onNext={() => setLightboxIndex((i) => Math.min(filteredImages.length - 1, i + 1))}
+      />
     </main>
   );
 }
