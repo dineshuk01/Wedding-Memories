@@ -60,14 +60,25 @@ export default function Lightbox({ images = [], index, onClose, onPrev, onNext }
   };
 
   const handleTouchStart = (e) => {
+    // If multiple fingers are on screen, user is probably zooming. Cancel swipe tracking.
+    if (e.touches.length > 1) {
+      touchStartX.current = null;
+      return;
+    }
     touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchMove = (e) => {
+    // If a second finger touches down mid-swipe, cancel tracking
+    if (e.touches.length > 1) {
+      touchStartX.current = null;
+    }
   };
   const handleTouchEnd = (e) => {
     if (touchStartX.current === null) return;
     const delta = touchStartX.current - e.changedTouches[0].clientX;
     if (Math.abs(delta) > 50) {
-      if (delta > 0) onNext();           // swipe left → next
-      else if (!isFirst) onPrev();       // swipe right → prev (blocked at first photo)
+      if (delta > 0 && !isLast) onNext();           // swipe left → next
+      else if (delta < 0 && !isFirst) onPrev();       // swipe right → prev
     }
     touchStartX.current = null;
   };
@@ -80,9 +91,10 @@ export default function Lightbox({ images = [], index, onClose, onPrev, onNext }
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4 backdrop-blur-xl"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4 lg:p-0 backdrop-blur-xl"
           onClick={onClose}
           onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
           {/* ── Top-right toolbar ── */}
@@ -127,7 +139,7 @@ export default function Lightbox({ images = [], index, onClose, onPrev, onNext }
               whileHover={{ scale: 1.12, x: -2 }}
               whileTap={{ scale: 0.92 }}
               onClick={(e) => { e.stopPropagation(); onPrev(); }}
-              className="absolute left-3 sm:left-5 z-10 grid h-12 w-12 place-items-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md transition hover:bg-white/25 shadow-xl"
+              className="hidden sm:grid absolute left-5 z-10 h-12 w-12 place-items-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md transition hover:bg-white/25 shadow-xl"
             >
               <FaChevronLeft className="h-5 w-5" />
             </motion.button>
@@ -140,7 +152,7 @@ export default function Lightbox({ images = [], index, onClose, onPrev, onNext }
             whileHover={!isLast ? { scale: 1.12, x: 2 } : {}}
             whileTap={!isLast ? { scale: 0.92 } : {}}
             onClick={(e) => { e.stopPropagation(); if (!isLast) onNext(); }}
-            className={`absolute right-3 sm:right-5 z-10 grid h-12 w-12 place-items-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md transition shadow-xl ${
+            className={`hidden sm:grid absolute right-5 z-10 h-12 w-12 place-items-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md transition shadow-xl ${
               isLast ? "opacity-25 cursor-not-allowed" : "hover:bg-white/25"
             }`}
           >
@@ -155,7 +167,7 @@ export default function Lightbox({ images = [], index, onClose, onPrev, onNext }
               animate={{ opacity: 1, scale: 1, x: 0 }}
               exit={{ opacity: 0, scale: 0.96, x: -30 }}
               transition={{ duration: 0.22, ease: "easeOut" }}
-              className="relative flex items-center justify-center max-h-[82vh] max-w-[84vw] rounded-3xl shadow-glow overflow-hidden"
+              className="relative flex items-center justify-center max-h-[82vh] max-w-[84vw] lg:h-full lg:w-full rounded-3xl lg:max-h-[100vh] lg:max-w-[100vw] lg:rounded-none shadow-glow lg:shadow-none overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Low-res thumbnail shown instantly and clearly */}
