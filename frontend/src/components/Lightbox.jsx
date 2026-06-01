@@ -22,6 +22,20 @@ export default function Lightbox({ images = [], index, onClose, onPrev, onNext }
     }
   }, [image]);
 
+  // Intelligently preload the next high-res image ONLY after the current one has finished loading.
+  // This prevents the prefetch from stealing bandwidth from the image the user is actively waiting to see.
+  useEffect(() => {
+    if (!highResLoaded || index === null || index === undefined || !images.length) return;
+
+    if (index < total - 1) {
+      const nextImg = images[index + 1];
+      if (nextImg && nextImg.original_url && nextImg.original_url !== nextImg.url) {
+        const preloader = new Image();
+        preloader.src = nextImg.original_url;
+      }
+    }
+  }, [highResLoaded, index, images, total]);
+
   // Keyboard navigation
   const handleKeyDown = useCallback(
     (e) => {
@@ -156,13 +170,11 @@ export default function Lightbox({ images = [], index, onClose, onPrev, onNext }
               className="relative flex items-center justify-center max-h-[82vh] max-w-[84vw] lg:h-full lg:w-full rounded-3xl lg:max-h-[100vh] lg:max-w-[100vw] lg:rounded-none shadow-glow lg:shadow-none overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Low-res thumbnail shown instantly */}
+              {/* Low-res thumbnail shown instantly and clearly */}
               <img
                 src={image.url}
                 alt={image.key}
-                className={`max-h-[82vh] max-w-[84vw] lg:h-full lg:w-full rounded-3xl lg:max-h-[100vh] lg:max-w-[100vw] lg:rounded-none object-contain transition-all duration-500 ${
-                  highResLoaded ? "blur-none" : "blur-lg scale-105"
-                }`}
+                className="max-h-[82vh] max-w-[84vw] rounded-3xl object-contain transition-all duration-500"
               />
 
               {/* High-res fades in on top once loaded */}
@@ -171,7 +183,9 @@ export default function Lightbox({ images = [], index, onClose, onPrev, onNext }
                   src={image.original_url}
                   alt={image.key}
                   onLoad={() => setHighResLoaded(true)}
-                  className={`absolute inset-0 h-full w-full rounded-3xl lg:rounded-none object-contain transition-opacity duration-500 ${
+                  decoding="async"
+                  fetchPriority="high"
+                  className={`absolute inset-0 h-full w-full rounded-3xl object-contain transition-opacity duration-500 ${
                     highResLoaded ? "opacity-100" : "opacity-0"
                   }`}
                 />

@@ -498,28 +498,27 @@ class S3ImageService:
 
     def presigned_url(self, key: str) -> str:
         # Check if CloudFront CDN is configured for delivery
-        if self.settings.cloudfront_domain and self.settings.cloudfront_key_id and self.settings.cloudfront_private_key_path:
-            try:
-                # Format CloudFront resource URL
-                cf_domain = self.settings.cloudfront_domain.rstrip("/")
-                if not cf_domain.startswith("http"):
-                    cf_domain = f"https://{cf_domain}"
+        if self.settings.cloudfront_domain:
+            cf_domain = self.settings.cloudfront_domain.rstrip("/")
+            if not cf_domain.startswith("http"):
+                cf_domain = f"https://{cf_domain}"
+            resource_url = f"{cf_domain}/{key}"
+
+            # If signed URLs are configured
+            if self.settings.cloudfront_key_id and self.settings.cloudfront_private_key_path:
+                try:
+                    signer = self._get_cloudfront_signer()
+                    expire_time = datetime.now(timezone.utc) + timedelta(seconds=self.settings.presigned_url_expires_seconds)
+                    return signer.generate_presigned_url(
+                        url=resource_url,
+                        date_less_than=expire_time
+                    )
+                except Exception as exc:
+                    pass # Fallback to S3
+            else:
+                # Public CloudFront URL
+                return resource_url
                 
-                resource_url = f"{cf_domain}/{key}"
-                signer = self._get_cloudfront_signer()
-                
-                # Expiration datetime (same duration as S3 URL)
-                expire_time = datetime.now(timezone.utc) + timedelta(seconds=self.settings.presigned_url_expires_seconds)
-                
-                return signer.generate_presigned_url(
-                    url=resource_url,
-                    date_less_than=expire_time
-                )
-            except Exception as exc:
-                raise HTTPException(
-                    status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail="Could not generate a temporary CloudFront CDN image URL.",
-                ) from exc
                 
         # S3 presigned URL fallback
         try:
