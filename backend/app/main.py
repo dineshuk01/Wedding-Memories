@@ -54,7 +54,7 @@ class LoginRequest(BaseModel):
 
 
 @app.post("/auth/login")
-def login(
+async def login(
     body: LoginRequest,
     settings: Settings = Depends(get_settings),
 ) -> dict:
